@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace ECS.Interfaces
 {
-    public interface ISystem
-    {
-        void DoWork(IList<IEntity> set);
-    }
+  public interface ISystem
+  {
+    void DoWork(IList<IEntity> set);
+  }
 }

@@ -3,9 +3,9 @@ using ECS.Interfaces;
 
 namespace ECS.Components.Product
 {
-  public class Price : BaseComponent
+  public class Vendor : BaseComponent
   {
-    public Price(IEntity parent) : base(parent) { parent.Set<Price>(this); }
+    public Vendor(IEntity parent) : base(parent) { parent.Set<Vendor>(this); }
 
     public decimal UnitPrice { get; set; }
     public decimal CostPrice { get; set; }

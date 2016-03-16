@@ -2,31 +2,26 @@
 
 namespace ECS.Base
 {
-    public class BaseComponent : IComponent
+  public class BaseComponent : IComponent
+  {
+    private IEntity _parent;
+
+    public IEntity Parent
     {
-        private IEntity _parent;
+      get
+      {
+        return _parent;
+      }
 
-        public IEntity Parent
-        {
-            get
-            {
-                return _parent;
-            }
-
-            private set
-            {
-                _parent = value;
-            }
-        }
-
-        public BaseComponent(IEntity parent)
-        {
-            _parent = parent;
-        }
-
-        public override string ToString()
-        {
-          return base.ToString();
-        }
+      private set
+      {
+        _parent = value;
+      }
     }
+
+    public BaseComponent(IEntity parent)
+    {
+      _parent = parent;
+    }
+  }
 }

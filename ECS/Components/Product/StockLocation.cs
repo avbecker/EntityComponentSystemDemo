@@ -18,7 +18,7 @@ namespace ECS.Components.Product
 
   public class StockLocation : BaseComponent
   {
-    public StockLocation(IEntity parent) : base(parent) { }
+    public StockLocation(IEntity parent) : base(parent) { parent.Set<StockLocation>(this); }
 
     public StockLocationType Type { get; set; }
   }

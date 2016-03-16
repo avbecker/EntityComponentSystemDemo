@@ -14,11 +14,12 @@ namespace ECS.Systems
     public void DoWork(IList<IEntity> set)
     {
       var random = new Random();
-      for(var i=0;i<1000000;i++) {
+      for (var i = 0; i < 5000000; i++)
+      {
         var product = new Product();
 
         product.Get<Description>().Name = string.Format("derp {0}", random.Next(1000));
-        product.Get<Price>().UnitPrice = (decimal)(random.NextDouble() * 1000f);
+        product.Get<Price>().UnitPrice = (decimal)(Math.Round(random.NextDouble() * 10000f,2));
         product.Get<StockLocation>().Type = (StockLocationType)random.Next(255);
         set.Add(product);
       }

@@ -1,7 +1,7 @@
 ﻿namespace ECS.Interfaces
 {
-    public interface IComponent
-    {
-        IEntity Parent { get; }
-    }
+  public interface IComponent
+  {
+    IEntity Parent { get; }
+  }
 }
