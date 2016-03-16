@@ -14,7 +14,7 @@ namespace ECS.Systems
     public void DoWork(IList<IEntity> set)
     {
       var random = new Random();
-      for (var i = 0; i < 5000000; i++)
+      for (var i = 0; i < 5000; i++)
       {
         var product = new Product();
 
