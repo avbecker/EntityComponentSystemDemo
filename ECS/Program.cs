@@ -70,7 +70,8 @@ namespace ECS
     System,
     Empty,
     Exit,
-    Unknown
+    Unknown,
+    Clear
   }
 
   class Command
@@ -93,11 +94,13 @@ namespace ECS
         return;
       }
 
-      if (!Enum.TryParse(split[0], true, out Type)) {
+      if (!Enum.TryParse(split[0], true, out Type))
+      {
         Type = CommandType.Unknown;
       }
 
-      if (split.Length > 1) {
+      if (split.Length > 1)
+      {
         _commandArguments = split.Skip(1).ToArray();
       }
 
@@ -112,11 +115,13 @@ namespace ECS
         if (_commandArguments != null && _commandArguments.Length > 0)
         {
           Type t = GetSystems().FirstOrDefault(c => c.Name.ToLower() == _commandArguments[0].ToLower());
-          if (t != null) {
+          if (t != null)
+          {
             HasOutput = false;
             _system = (ISystem)Activator.CreateInstance(t);
           }
-        } else {
+        }
+        else {
           Type = CommandType.Unknown;
         }
       }
@@ -124,7 +129,8 @@ namespace ECS
 
     public void Do()
     {
-      switch(Type) {
+      switch (Type)
+      {
         case CommandType.System: DoSystem(); break;
         case CommandType.List: DoList(); break;
         case CommandType.Help: DoHelp(); break;
@@ -133,7 +139,8 @@ namespace ECS
       Thread.Sleep(100);
     }
 
-    private void DoList() {
+    private void DoList()
+    {
       var sb = new StringBuilder();
       int count = 0;
       foreach (var item in _entities)
@@ -151,11 +158,13 @@ namespace ECS
       Console.WriteLine(string.Format("{0} entities", _entities.Count()));
     }
 
-    private void DoUnknown() {
+    private void DoUnknown()
+    {
       Console.WriteLine("Invalid Command");
     }
 
-    private void DoSystem() {
+    private void DoSystem()
+    {
       if (_system == null)
       {
         Console.WriteLine("System Not Found");
@@ -166,31 +175,64 @@ namespace ECS
       }
     }
 
-    private void DoHelp() {
-      if (_commandArguments == null || _commandArguments.Length == 0 || string.IsNullOrEmpty(_commandArguments[0])) {
+    private void DoHelp()
+    {
+      if (_commandArguments == null || _commandArguments.Length == 0 || string.IsNullOrEmpty(_commandArguments[0]))
+      {
         Console.WriteLine("Following commands available:");
-        Console.WriteLine(string.Join(", ",Enum.GetNames(typeof(CommandType))));
+        Console.WriteLine(string.Join(", ", Enum.GetNames(typeof(CommandType))));
         Console.WriteLine("Use \"help (command)\" for more information");
 
         return;
       }
 
-      switch(_commandArguments[0].ToLower()) {
-        case "system": {
+      switch (_commandArguments[0].ToLower())
+      {
+        case "help":
+          {
+            Console.WriteLine("derp");
+          }
+          break;
+        case "exit":
+          {
+            Console.WriteLine("Exits the application");
+          }
+          break;
+        case "system":
+          {
             Console.WriteLine("Following systems available:");
             Console.WriteLine(string.Join(", ", GetSystems().Select(c => c.Name)));
             Console.WriteLine("Activate a system by the command \"system (name)\"");
-        }break;
+          }
+          break;
+        case "clear":
+          {
+            Console.WriteLine("Clears the entity storage");
+          }
+          break;
+        case "empty":
+        case "unknown":
+          {
+            Console.WriteLine("Internal use only");
+          }
+          break;
+        case "list":
+          {
+            Console.WriteLine("Prints out all entities in storage, this can take a while for large amount of entities!");
+          }
+          break;
         default: Console.WriteLine("No help available"); break;
       }
-      
+
     }
 
-    private void DoClear() {
+    private void DoClear()
+    {
       _entities.Clear();
     }
 
-    private IEnumerable<Type> GetSystems() {
+    private IEnumerable<Type> GetSystems()
+    {
       var type = typeof(ISystem);
       return AppDomain.CurrentDomain.GetAssemblies()
           .SelectMany(s => s.GetTypes())
