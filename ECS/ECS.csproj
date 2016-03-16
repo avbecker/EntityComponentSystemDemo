@@ -55,7 +55,9 @@
     <Compile Include="Interfaces\ISystem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Systems\ProductsGenerator.cs" />
     <Compile Include="Systems\StockLabelGenerator.cs" />
+    <Compile Include="Util\UniqueKeyGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

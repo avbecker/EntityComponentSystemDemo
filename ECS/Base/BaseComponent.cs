@@ -23,5 +23,10 @@ namespace ECS.Base
         {
             _parent = parent;
         }
+
+        public override string ToString()
+        {
+          return base.ToString();
+        }
     }
 }

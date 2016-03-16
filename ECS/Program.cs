@@ -60,6 +60,7 @@ namespace ECS
 
     enum CommandType
     {
+        List,
         System,
         Empty,
         Exit,
@@ -91,23 +92,33 @@ namespace ECS
             {
                 case "exit": Type = CommandType.Exit; break;
                 case "system": Type = CommandType.System; break;
+                case "list": Type = CommandType.List; break;
                 default: Type = CommandType.Unknown; break;
             }
 
-            if (Type == CommandType.Empty || Type == CommandType.Unknown)
+            if (Type == CommandType.Empty || Type == CommandType.Unknown || Type == CommandType.List)
             {
                 HasOutput = true;
             }
 
-            if (Type == CommandType.System && split.Length > 1)
+            if (Type == CommandType.System)
             {
-                try {
-                    Type t = System.Type.GetType("ECS.Systems." + split[1]);
-                    _system = (ISystem)Activator.CreateInstance(t);
-                } catch
+              if (split.Length > 1)
+              {
+                try
                 {
-                    HasOutput = true;
+                  Type t = System.Type.GetType("ECS.Systems." + split[1]);
+                  _system = (ISystem)Activator.CreateInstance(t);
                 }
+                catch
+                {
+                  HasOutput = true;
+                }
+              }
+              else
+              {
+                HasOutput = true;
+              }
             }
         }
 
@@ -128,6 +139,14 @@ namespace ECS
                 {
                     _system.DoWork(_entities);
                 }
+            }
+
+            if (Type == CommandType.List)
+            {
+              foreach (var item in _entities)
+              {
+                Console.WriteLine(item.ToString());
+              }
             }
 
             Thread.Sleep(100);

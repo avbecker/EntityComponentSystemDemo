@@ -35,5 +35,28 @@ namespace ECS.Base
                 _components[typeof(T)] = (IComponent)component;
             }
         }
+
+        public override string ToString()
+        {
+          var components = new List<string>();
+          foreach (var type in _components.Keys)
+          {
+            var comp = _components[type];
+            var properties = new List<string>();
+            foreach (var prop in type.GetProperties())
+            {
+              if (prop.PropertyType == typeof(ECS.Interfaces.IEntity))
+              {
+                continue;
+              }
+              properties.Add(string.Format("\n\t\t{0} = \"{1}\"",prop.Name,prop.GetValue(comp)));
+            }
+
+            components.Add(string.Format("\n\t{0} = {{ {1} }}", type.Name, string.Join(", ", properties)));
+          }
+
+          var result = string.Format("Product:{{\n\tID = \"{0}\", {1} }}", ID, string.Join(", ", components));
+          return result;
+        }
     }
 }
