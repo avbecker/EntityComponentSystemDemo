@@ -60,6 +60,8 @@
   <ItemGroup>
     <Compile Include="Base\BaseComponent.cs" />
     <Compile Include="Base\BaseEntity.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="CommandType.cs" />
     <Compile Include="Components\Product\Brand.cs" />
     <Compile Include="Components\Product\Description.cs" />
     <Compile Include="Components\Product\Media.cs" />
@@ -67,6 +69,7 @@
     <Compile Include="Components\Product\Stock.cs" />
     <Compile Include="Components\Product\StockLocation.cs" />
     <Compile Include="Components\Product\Vendor.cs" />
+    <Compile Include="ECSDEMO.cs" />
     <Compile Include="Entities\Product.cs" />
     <Compile Include="Interfaces\IComponent.cs" />
     <Compile Include="Interfaces\IEntity.cs" />

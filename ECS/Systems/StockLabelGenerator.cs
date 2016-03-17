@@ -1,6 +1,5 @@
 ﻿using ECS.Components.Product;
 using ECS.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,11 +13,15 @@ namespace ECS.Systems
 
       foreach (var entity in workset)
       {
-        var price = entity.Get<Price>(); var description = entity.Get<Description>(); var stocklocation = entity.Get<StockLocation>();
+        var price = entity.Get<Price>(); 
+        var description = entity.Get<Description>(); 
+        var stocklocation = entity.Get<StockLocation>();
+
         if (description == null)
           continue;
 
         var label = string.Format("{0}", description.Name);
+
         if (price != null)
         {
           label = string.Format("{0}, voor maar {1:C}", label, price.UnitPrice);
