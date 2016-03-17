@@ -65,12 +65,13 @@ namespace ECS
 
   enum CommandType
   {
+    Count,
     Help,
     List,
     System,
-    Empty,
+    _Empty,
     Exit,
-    Unknown,
+    _Unknown,
     Clear
   }
 
@@ -87,16 +88,17 @@ namespace ECS
     {
       _entities = entities;
       var split = commandstring.Split(' ');
+      _commandArguments = new string[] { };
 
       if (split.Length == 0)
       {
-        Type = CommandType.Empty;
+        Type = CommandType._Empty;
         return;
       }
 
       if (!Enum.TryParse(split[0], true, out Type))
       {
-        Type = CommandType.Unknown;
+        Type = CommandType._Unknown;
       }
 
       if (split.Length > 1)
@@ -104,7 +106,11 @@ namespace ECS
         _commandArguments = split.Skip(1).ToArray();
       }
 
-      if (Type == CommandType.Empty || Type == CommandType.Unknown || Type == CommandType.List || Type == CommandType.Help)
+      if (Type == CommandType._Empty || 
+          Type == CommandType._Unknown || 
+          Type == CommandType.List || 
+          Type == CommandType.Help ||
+          Type == CommandType.Count)
       {
         HasOutput = true;
       }
@@ -112,7 +118,7 @@ namespace ECS
       if (Type == CommandType.System)
       {
         HasOutput = true;
-        if (_commandArguments != null && _commandArguments.Length > 0)
+        if (_commandArguments.Length > 0)
         {
           Type t = GetSystems().FirstOrDefault(c => c.Name.ToLower() == _commandArguments[0].ToLower());
           if (t != null)
@@ -120,9 +126,6 @@ namespace ECS
             HasOutput = false;
             _system = (ISystem)Activator.CreateInstance(t);
           }
-        }
-        else {
-          Type = CommandType.Unknown;
         }
       }
     }
@@ -134,6 +137,8 @@ namespace ECS
         case CommandType.System: DoSystem(); break;
         case CommandType.List: DoList(); break;
         case CommandType.Help: DoHelp(); break;
+        case CommandType.Clear: DoClear(); break;
+        case CommandType.Count: DoCount(); break;
         default: DoUnknown(); break;
       }
       Thread.Sleep(100);
@@ -143,7 +148,18 @@ namespace ECS
     {
       var sb = new StringBuilder();
       int count = 0;
-      foreach (var item in _entities)
+      int skip = 0;
+      int take = int.MaxValue;
+
+      if (_commandArguments.Length > 0) 
+      {
+        int.TryParse(_commandArguments[0],out take);
+        if (_commandArguments.Length > 1) {
+          int.TryParse(_commandArguments[1], out skip);
+        }
+      }
+
+      foreach (var item in _entities.Skip(skip).Take(take))
       {
         sb.Append(string.Format("{0}\n", item.ToString()));
         count++;
@@ -167,7 +183,9 @@ namespace ECS
     {
       if (_system == null)
       {
-        Console.WriteLine("System Not Found");
+        Console.WriteLine("System not found, loaded systems are:");
+        Console.WriteLine();
+        Console.WriteLine(string.Join(", ", GetSystems().Select(c => c.Name)));
       }
       else
       {
@@ -180,7 +198,7 @@ namespace ECS
       if (_commandArguments == null || _commandArguments.Length == 0 || string.IsNullOrEmpty(_commandArguments[0]))
       {
         Console.WriteLine("Following commands available:");
-        Console.WriteLine(string.Join(", ", Enum.GetNames(typeof(CommandType))));
+        Console.WriteLine(string.Join(", ", Enum.GetNames(typeof(CommandType)).Where(c=>c[0] != '_')));
         Console.WriteLine("Use \"help (command)\" for more information");
 
         return;
@@ -210,15 +228,10 @@ namespace ECS
             Console.WriteLine("Clears the entity storage");
           }
           break;
-        case "empty":
-        case "unknown":
-          {
-            Console.WriteLine("Internal use only");
-          }
-          break;
         case "list":
           {
-            Console.WriteLine("Prints out all entities in storage, this can take a while for large amount of entities!");
+            Console.WriteLine("Prints entities in storage. Usage:");
+            Console.WriteLine("list (take) (skip)");
           }
           break;
         default: Console.WriteLine("No help available"); break;
@@ -229,6 +242,10 @@ namespace ECS
     private void DoClear()
     {
       _entities.Clear();
+    }
+
+    private void DoCount() {
+      Console.WriteLine(string.Format("{0} entities", _entities.Count()));
     }
 
     private IEnumerable<Type> GetSystems()

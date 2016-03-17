@@ -57,7 +57,7 @@ namespace ECS.Base
         components.Add(string.Format("\n\t{0} = {{ {1} \n\t}}", type.Name, string.Join(", ", properties)));
       }
 
-      var result = string.Format("Entity:{{\n\tID = \"{0}\", {1} \n}}", ID, string.Join(", ", components));
+      var result = string.Format("Entity:{{\n\tID = {0}, {1} \n}}", ID, string.Join(", ", components));
       return result;
     }
 
