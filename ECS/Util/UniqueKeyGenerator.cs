@@ -9,9 +9,14 @@ namespace ECS.Util
   static class UniqueKeyGenerator
   {
     private static int key = 0;
+    private static object locker = new object();
+
     public static int GetKey()
     {
-      return UniqueKeyGenerator.key++;
+      lock (locker)
+      {
+        return UniqueKeyGenerator.key++;
+      }
     }
   }
 }

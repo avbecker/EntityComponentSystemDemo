@@ -29,6 +29,13 @@ namespace ECS.Base
         _components[typeof(T)] = (IComponent)component;
     }
 
+    public Type[] List()
+    {
+      Type[] keys = new Type[_components.Keys.Count];
+      _components.Keys.CopyTo(keys,0);
+      return keys;
+    }
+
     public override string ToString()
     {
       var components = new List<string>();
@@ -64,6 +71,14 @@ namespace ECS.Base
     public bool Has<T>() where T : IComponent
     {
       return _components.ContainsKey(typeof(T));
+    }
+
+
+    public IComponent[] GetComponents()
+    {
+      IComponent[] values = new IComponent[_components.Values.Count];
+      _components.Values.CopyTo(values, 0);
+      return values;
     }
   }
 }

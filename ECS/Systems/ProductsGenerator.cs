@@ -1,5 +1,5 @@
 ﻿using ECS.Components.Product;
-using ECS.Entities;
+using ECS.Templates;
 using ECS.Interfaces;
 using System;
 using System.Collections.Generic;

@@ -48,6 +48,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -60,6 +64,7 @@
   <ItemGroup>
     <Compile Include="Base\BaseComponent.cs" />
     <Compile Include="Base\BaseEntity.cs" />
+    <Compile Include="Components\Product\Attributes.cs" />
     <Compile Include="Components\Product\Brand.cs" />
     <Compile Include="Components\Product\Description.cs" />
     <Compile Include="Components\Product\Media.cs" />
@@ -67,7 +72,11 @@
     <Compile Include="Components\Product\Stock.cs" />
     <Compile Include="Components\Product\StockLocation.cs" />
     <Compile Include="Components\Product\Vendor.cs" />
-    <Compile Include="Entities\Product.cs" />
+    <Compile Include="Db\DataStore.cs" />
+    <Compile Include="Systems\DBCreate.cs" />
+    <Compile Include="Systems\DBInsert.cs" />
+    <Compile Include="Systems\DBLoad.cs" />
+    <Compile Include="Templates\Product.cs" />
     <Compile Include="Interfaces\IComponent.cs" />
     <Compile Include="Interfaces\IEntity.cs" />
     <Compile Include="Interfaces\ISystem.cs" />
@@ -81,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
@@ -99,6 +109,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
