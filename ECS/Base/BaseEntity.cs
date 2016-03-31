@@ -26,6 +26,10 @@ namespace ECS.Base
 
     public void Set<T>(T component) where T : IComponent
     {
+        if (_components.ContainsKey(typeof(T))) {
+          _components[typeof(T)].Remove();
+        }
+
         _components[typeof(T)] = (IComponent)component;
     }
 

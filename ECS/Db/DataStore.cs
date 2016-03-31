@@ -11,7 +11,7 @@ using ECS.Base;
 
 namespace ECS.Db
 {
-  public class DataStore<T> where T: IEntity, new()
+  public class DataStore<T> where T : IEntity, new()
   {
     private static string connString = "Data Source=DIRACT-036; Initial Catalog=zig; User Id=bami;Password=bami;MultipleActiveResultSets=true";
 
@@ -22,7 +22,7 @@ namespace ECS.Db
       {
         // Add the rest of your CLR Types to SQL Types mapping here
         Dictionary<Type, String> dataMapper = new Dictionary<Type, string>();
-        dataMapper.Add(typeof(int), "BIGINT");
+        dataMapper.Add(typeof(int), "INT");
         dataMapper.Add(typeof(string), "NVARCHAR(500)");
         dataMapper.Add(typeof(bool), "BIT");
         dataMapper.Add(typeof(DateTime), "DATETIME");
@@ -33,62 +33,77 @@ namespace ECS.Db
         return dataMapper;
       }
     }
+    private Dictionary<Type, List<PropertyInfo>> mappableProperties;
 
     public DataStore(T template)
     {
       _template = template;
+
+      mappableProperties = new Dictionary<Type, List<PropertyInfo>>();
+      var components = _template.List();
+      foreach (var type in components)
+      {
+        if (!typeof(IComponent).IsAssignableFrom(type))
+          continue;
+        mappableProperties.Add(type, new List<PropertyInfo>());
+
+        foreach (var p in type.GetProperties())
+        {
+          if (typeof(IEntity).IsAssignableFrom(p.PropertyType))
+            continue;
+
+          if (p.PropertyType.GetInterface(typeof(IEnumerable<>).FullName) == null || p.PropertyType == typeof(string))
+          {
+            mappableProperties[type].Add(p);
+            continue;
+          }
+        }
+      }
     }
 
-    public void CreateTables() 
+    public void CreateTables()
     {
       var components = _template.List();
 
       var fields = new List<KeyValuePair<String, Type>>();
       var foreignkeys = new List<KeyValuePair<String, Type>>();
 
-      foreach (var component in components)
+      foreach (var type in mappableProperties.Keys)
       {
-        if (!typeof(IComponent).IsAssignableFrom(component))
-          continue;
-
-        foreach (var p in component.GetProperties())
+        foreach (var p in mappableProperties[type])
         {
-          if (typeof(IEntity).IsAssignableFrom(p.PropertyType))
-            continue;
-
           if (p.PropertyType.GetInterface(typeof(IEnumerable<>).FullName) != null && p.PropertyType != typeof(string))
           {
             foreignkeys.Add(new KeyValuePair<string, Type>(p.Name, p.PropertyType));
             continue;
           }
-
-          fields.Add(new KeyValuePair<String, Type>(component.Name+"."+p.Name, p.PropertyType));
+          fields.Add(new KeyValuePair<String, Type>(string.Format("{0}.{1}", type.Name, p.Name), p.PropertyType));
         }
       }
 
       System.Text.StringBuilder script = new StringBuilder();
-      script.AppendLine("CREATE TABLE " + typeof(T).Name);
+      script.AppendLine(string.Format("CREATE TABLE {0}", typeof(T).Name));
       script.AppendLine("(");
-      script.AppendLine("\t ID INT,");
-      script.AppendLine("\t CONSTRAINT PK_" + typeof(T).Name + "_ID PRIMARY KEY CLUSTERED (ID),");
+      script.AppendLine("\t ID INT IDENTITY(1,1),");
+      script.AppendLine(string.Format("\t CONSTRAINT PK_{0}_ID PRIMARY KEY CLUSTERED (ID),", typeof(T).Name));
       for (int i = 0; i < fields.Count; i++)
       {
         KeyValuePair<String, Type> field = fields[i];
 
         if (dataMapper.ContainsKey(field.Value))
         {
-          script.Append("\t [" + field.Key + "] " + dataMapper[field.Value]);
+          script.Append(string.Format("\t [{0}] {1}", field.Key, dataMapper[field.Value]));
         }
         else
         {
           if (field.Value.IsEnum)
           {
-            script.Append("\t [" + field.Key + "] INT");
+            script.Append(string.Format("\t [{0}] INT", field.Key));
           }
           else
           {
             // Complex Type? 
-            script.Append("\t [" + field.Key + "] NVARCHAR(500)");
+            script.Append(string.Format("\t [{0}] NVARCHAR(500)", field.Key));
           }
         }
 
@@ -108,15 +123,15 @@ namespace ECS.Db
       for (int i = 0; i < foreignkeys.Count; i++)
       {
         var foreign = foreignkeys[i];
-        script.AppendLine("CREATE TABLE " + typeof(T).Name + foreign.Key);
+        script.AppendLine(string.Format("CREATE TABLE {0}{1}", typeof(T).Name, foreign.Key));
         script.AppendLine("(");
-        script.AppendLine("\t ID INT,");
-        script.AppendLine("\t CONSTRAINT PK_" + foreign.Key + "_ID PRIMARY KEY CLUSTERED (ID),");
-        script.AppendLine("\t " + typeof(T).Name + "ID INT,");
+        script.AppendLine("\t ID INT IDENTITY(1,1),");
+        script.AppendLine(string.Format("\t CONSTRAINT PK_{0}_ID PRIMARY KEY CLUSTERED (ID),", foreign.Key));
+        script.AppendLine(string.Format("\t {0}ID INT,", typeof(T).Name));
 
         var properties = foreign.Value.GetProperties();
 
-        for (var j = 0; j < properties.Length;j++ )
+        for (var j = 0; j < properties.Length; j++)
         {
           var p = properties[j];
           var t = p.PropertyType;
@@ -147,114 +162,120 @@ namespace ECS.Db
 
     public IEnumerable<T> GetAll()
     {
-      var components = _template.List();
       var result = new List<T>();
 
       using (var conn = new SqlConnection(connString))
       {
-        var res = conn.Query<dynamic>("SELECT * FROM "+ typeof(T).Name);
+        conn.Open();
+        var res = conn.Query<dynamic>("SELECT * FROM " + typeof(T).Name);
         foreach (var row in res)
         {
           var dat = (IDictionary<string, object>)row;
           var entity = new T();
           entity.ID = row.ID;
 
-          foreach (var type in components)
+          foreach (var type in mappableProperties.Keys)
           {
             var comp = Activator.CreateInstance(type, entity);
-            if (!typeof(IComponent).IsAssignableFrom(type))
-              continue;
-
-            foreach (var p in type.GetProperties())
+            foreach (var p in mappableProperties[type])
             {
-              if (!dat.ContainsKey(type.Name+"."+p.Name))
-                continue;
-
-              p.SetValue(comp, dat[p.Name]);
+              p.SetValue(comp, dat[string.Format("{0}.{1}", type.Name, p.Name)]);
             }
           }
 
           result.Add(entity);
         }
+        conn.Close();
       }
       return result;
     }
 
     public void Write(IEnumerable<IEntity> items)
     {
-      var components = _template.List();
-
-      var fields = new List<KeyValuePair<String, Type>>();
-      var foreignkeys = new List<KeyValuePair<String, Type>>();
-
-      foreach (var component in components)
-      {
-        if (!typeof(IComponent).IsAssignableFrom(component))
-          continue;
-
-        foreach (var p in component.GetProperties())
-        {
-          if (typeof(IEntity).IsAssignableFrom(p.PropertyType))
-            continue;
-
-          if (p.PropertyType.GetInterface(typeof(IEnumerable<>).FullName) != null && p.PropertyType != typeof(string))
-          {
-            foreignkeys.Add(new KeyValuePair<string, Type>(p.Name, p.PropertyType));
-            continue;
-          }
-
-          fields.Add(new KeyValuePair<String, Type>(component.Name + "." + p.Name, p.PropertyType));
-        }
-      }
+      //var fields = new List<KeyValuePair<String, Type>>();
+      //var foreignkeys = new List<KeyValuePair<String, Type>>();
 
       var dbTable = typeof(T).Name;
-      var dbFields = "([ID]," + string.Join(",", fields.Select(c => "[" + c.Key + "]")) + ")";
+      var dbFields = "";
 
       using (var conn = new SqlConnection(connString))
       {
-
-      
-      foreach (var item in items)
-      {
-        List<object> values = new List<object>();
-        values.Add(item.ID);
-        foreach (var comp in components)
+        conn.Open();
+        using (var tran = conn.BeginTransaction())
         {
-          var elem = item.GetComponents().FirstOrDefault(c => c.GetType() == comp);
-          if (elem == null)
+          foreach (var item in items)
           {
-            foreach (var prop in comp.GetProperties())
+            Dictionary<string, object> values = new Dictionary<string, object>();
+            if (item.ID > 0)
             {
-              if (typeof(IEntity).IsAssignableFrom(prop.PropertyType))
-                continue;
+              values.Add("ID", item.ID);
+            }
 
-              if (prop.PropertyType.GetInterface(typeof(IEnumerable<>).FullName) == null || prop.PropertyType == typeof(string))
+            foreach (var type in mappableProperties.Keys)
+            {
+              var elem = item.GetComponents().FirstOrDefault(c => c.GetType() == type);
+              if (elem == null)
               {
-                values.Add(null);
+                foreach (var prop in mappableProperties[type])
+                {
+                  values.Add(string.Format("{0}_{1}", type.Name, prop.Name), null);
+                }
+              }
+              else
+              {
+                foreach (var prop in mappableProperties[type])
+                {
+                  if (prop.PropertyType.IsEnum)
+                  {
+                    values.Add(string.Format("{0}_{1}", type.Name, prop.Name), (int)prop.GetValue(elem));
+                  }
+                  else
+                  {
+                    values.Add(string.Format("{0}_{1}", type.Name, prop.Name), prop.GetValue(elem));
+                  }
+                }
               }
             }
-          }
-          else
-          {
-            foreach (var prop in elem.GetType().GetProperties())
-            {
-              if (typeof(IEntity).IsAssignableFrom(prop.PropertyType))
-                continue;
+            var sql = "";
 
-              if (prop.PropertyType.GetInterface(typeof(IEnumerable<>).FullName) == null || prop.PropertyType == typeof(string))
-              {
-                values.Add(prop.GetValue(elem));
-              }
+            if (item.ID > 0)
+            {
+              dbFields = string.Join(",", values.Skip(1).Select(c => "[" + c.Key.Replace('_', '.') + "] = @" + c.Key + ""));
+              sql = string.Format("UPDATE {0} SET {1} WHERE ID = @ID", dbTable, dbFields);
+              conn.Execute(sql, values, tran);
+            }
+            else
+            {
+              dbFields = "(" + string.Join(",", values.Select(c => "[" + c.Key.Replace('_', '.') + "]")) + ")";
+              var dbValues = "(" + string.Join(",", values.Select(c => "@" + c.Key + "")) + ")";
+              sql = string.Format("INSERT INTO {0} {1} VALUES {2}; SELECT CAST(SCOPE_IDENTITY() as int)", dbTable, dbFields, dbValues);
+              item.ID = conn.Query<int>(sql, values, tran).Single();
             }
           }
+          tran.Commit();
         }
-
-        
-
-        var sql = string.Format("INSERT INTO {0} {1} VALUES @vals",dbTable, dbFields);
-        conn.Execute(sql, new { vals = values });
+        conn.Close();
       }
+    }
+
+    public void Sync(IEnumerable<IEntity> items)
+    {
+      using (var conn = new SqlConnection(connString))
+      {
+        conn.Open();
+        using (var trans = conn.BeginTransaction())
+        {
+          var query = "DELETE FROM " + typeof(T).Name + " WHERE ID NOT IN @ids";
+
+          for (var i = 0; i <= items.Count(); i += 1000)
+          {
+            conn.Execute(query, new { ids = items.Skip(i).Take(1000).Select(c => c.ID).Distinct().ToList() }, trans);
+          }
+          trans.Commit();
+        }
+        conn.Close();
       }
+      Write(items);
     }
 
     private void DoSql(string sql)
@@ -262,11 +283,12 @@ namespace ECS.Db
       using (var conn = new SqlConnection(connString))
       {
         conn.Open();
-        var cmds = sql.Split(new string[] {"GO"},StringSplitOptions.RemoveEmptyEntries);
+        var cmds = sql.Split(new string[] { "GO" }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var cmd in cmds)
         {
           conn.Execute(cmd);
         }
+        conn.Close();
       }
     }
   }

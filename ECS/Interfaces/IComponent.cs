@@ -3,5 +3,6 @@
   public interface IComponent
   {
     IEntity Parent { get; }
+    void Remove();
   }
 }

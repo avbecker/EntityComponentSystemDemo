@@ -74,8 +74,9 @@
     <Compile Include="Components\Product\Vendor.cs" />
     <Compile Include="Db\DataStore.cs" />
     <Compile Include="Systems\DBCreate.cs" />
-    <Compile Include="Systems\DBInsert.cs" />
+    <Compile Include="Systems\DBSave.cs" />
     <Compile Include="Systems\DBLoad.cs" />
+    <Compile Include="Systems\DBSync.cs" />
     <Compile Include="Templates\Product.cs" />
     <Compile Include="Interfaces\IComponent.cs" />
     <Compile Include="Interfaces\IEntity.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Systems\ProductsGenerator.cs" />
-    <Compile Include="Systems\ConcentratorXmlLoader.cs" />
+    <Compile Include="Systems\ConXmlImport.cs" />
     <Compile Include="Systems\StockLabelGenerator.cs" />
     <Compile Include="Util\UniqueKeyGenerator.cs" />
     <Compile Include="Util\XmlAutoMapper.cs" />

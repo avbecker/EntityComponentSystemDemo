@@ -7,7 +7,7 @@ namespace ECS.Components.Product
   {
     public Vendor(IEntity parent) : base(parent) { parent.Set<Vendor>(this); }
 
-    public decimal UnitPrice { get; set; }
-    public decimal CostPrice { get; set; }
+    public string VendorName { get; set; }
+    public string Vendordingdong { get; set; }
   }
 }

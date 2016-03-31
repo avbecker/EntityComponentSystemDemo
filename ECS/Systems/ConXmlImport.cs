@@ -8,20 +8,21 @@ using System.Xml.Linq;
 
 namespace ECS.Systems
 {
-  class ConcentratorXmlLoader : ISystem
+  class ConXmlImport : ISystem
   {
     public void DoWork(IList<IEntity> set)
     {
-      var data = XElement.Load(@"Data/247Assortment.xml");
+      var data = XElement.Load(@"Data/247Assortment2.xml");
 
-      var mapper = new XmlAutoMapper("ProductID", false);
+      var mapper = new XmlAutoMapper();
 
       mapper.Bind<Description>(
         new Dictionary<string, string>
         {
             {"ShortDescription",  "Content>ShortDescription"},
             {"LongDescription",   "Content>LongDescription"},
-            {"Name",              "Content>ProductName" }
+            {"Name",              "Content>ProductName" },
+            {"ConcentratorID",    ">ProductID"}
         });
 
       mapper.Bind<Price>(
@@ -40,10 +41,10 @@ namespace ECS.Systems
       mapper.Bind<Brand>(
         new Dictionary<string, string>
         {
-            {"ID", "Brands/Brand>BrandID"},
-            {"ParentID", "Brands/Brand>ParentBrandID"},
-            {"Name", "Brands/Brand/Name"},
-            {"Code", "Brands/Brand/Code"},
+            {"ID",        "Brands/Brand>BrandID"},
+            {"ParentID",  "Brands/Brand>ParentBrandID"},
+            {"Name",      "Brands/Brand/Name"},
+            {"Code",      "Brands/Brand/Code"},
         });
 
       foreach (var productElem in data.Elements("Product"))

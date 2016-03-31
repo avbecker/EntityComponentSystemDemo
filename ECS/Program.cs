@@ -1,6 +1,7 @@
 ﻿using ECS.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -33,6 +34,9 @@ namespace ECS
         {
           Console.Write("Working  ");
           int counter = 0;
+          int entityCount = Data.Count();
+          var sw = new Stopwatch();
+          sw.Start();
           while (!workThread.Join(100))
           {
             counter = (counter + 1) % 4;
@@ -44,7 +48,20 @@ namespace ECS
               case 3: Console.Write("\b|"); break;
             }
           }
-          Console.WriteLine("\rDone!                   ");
+          sw.Stop();
+          var diff = Data.Count() - entityCount;
+          if (diff > 0)
+          {
+            Console.WriteLine(string.Format("\rAdded {0} entities in {1}                  ",diff, sw.Elapsed));
+          }
+          else if (diff < 0)
+          {
+            Console.WriteLine(string.Format("\rRemoved {0} entities in {1}                  ", -diff, sw.Elapsed));
+          }
+          else
+          {
+            Console.WriteLine(string.Format("\rDone in {0}                  ", sw.Elapsed));
+          }
         }
         else { workThread.Join(); }
 

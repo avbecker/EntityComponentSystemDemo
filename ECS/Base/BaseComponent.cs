@@ -23,5 +23,11 @@ namespace ECS.Base
     {
       _parent = parent;
     }
+
+
+    public void Remove()
+    {
+      _parent = null;
+    }
   }
 }

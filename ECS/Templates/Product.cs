@@ -15,6 +15,7 @@ namespace ECS.Templates
       new StockLocation(this);
       new Price(this);
       new Attributes(this);
+      new Vendor(this);
     }
   }
 }

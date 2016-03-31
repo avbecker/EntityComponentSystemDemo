@@ -8,6 +8,7 @@ namespace ECS.Components.Product
     public Description(IEntity parent) : base(parent) { parent.Set<Description>(this); }
 
     public string Name { get; set; }
+    public int ConcentratorID { get; set; }
     public string ShortDescription { get; set; }
     public string LongDescription { get; set; }
 

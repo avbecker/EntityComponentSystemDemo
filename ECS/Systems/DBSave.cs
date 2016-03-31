@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ECS.Systems
 {
-  class DBInsert : ISystem
+  class DBSave : ISystem
   {
     public void DoWork(IList<IEntity> set)
     {

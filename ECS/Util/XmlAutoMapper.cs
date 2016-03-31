@@ -15,12 +15,16 @@ namespace ECS.Util
     private bool _isElement;
     private Dictionary<Type, Dictionary<string, string>> _componentMappings;
 
+    public XmlAutoMapper()
+    {
+      _componentMappings = new Dictionary<Type, Dictionary<string, string>>();
+    }
+
     public XmlAutoMapper(string idField, bool isElement)
+      : this()
     {
       _idField = idField;
       _isElement = isElement;
-
-      _componentMappings = new Dictionary<Type, Dictionary<string, string>>();
     }
 
     public void Bind<T>(Dictionary<string, string> propertyPaths) where T : IComponent
@@ -39,12 +43,20 @@ namespace ECS.Util
     public T Map<T>(XElement xml) where T : IEntity, new()
     {
       var entity = new T();
-      if (_isElement)
+      if (string.IsNullOrEmpty(_idField))
       {
-        entity.ID = int.Parse(xml.Element(_idField).Value);
+        entity.ID = 0;
       }
-      else {
-        entity.ID = int.Parse(xml.Attribute(_idField).Value);
+      else
+      {
+        if (_isElement)
+        {
+          entity.ID = int.Parse(xml.Element(_idField).Value);
+        }
+        else
+        {
+          entity.ID = int.Parse(xml.Attribute(_idField).Value);
+        }
       }
 
       foreach (var type in _componentMappings.Keys)
@@ -77,10 +89,13 @@ namespace ECS.Util
           var elem = xml;
           for (int i = 0; i < path.Length; i++)
           {
-            elem = elem.Element(path[i]);
-            if (elem == null)
+            if (!string.IsNullOrEmpty(path[i]))
             {
-              break;
+              elem = elem.Element(path[i]);
+              if (elem == null)
+              {
+                break;
+              }
             }
           }
           string val = null;
@@ -93,7 +108,8 @@ namespace ECS.Util
             }
             val = attr.Value;
           }
-          else {
+          else
+          {
             if (elem == null)
             {
               continue;
